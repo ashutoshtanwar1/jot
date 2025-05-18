@@ -31,6 +31,18 @@ A minimal note-taking app built with React, TypeScript, and Tiptap.
 - Formatting options (bold, italic, headings, code block etc)
 - Dark mode toggle
 
+## Screenshots
+
+Here's a quick look at Jot in both dark and light modes:
+
+|                 Home Page (Dark)                  |                  Home Page (Light)                  |
+| :-----------------------------------------------: | :-------------------------------------------------: |
+| ![Home Page Dark](public/home_page_dark_mode.png) | ![Home Page Light](public/home_page_light_mode.png) |
+
+|                 File View (Dark)                  |                  File View (Light)                  |
+| :-----------------------------------------------: | :-------------------------------------------------: |
+| ![File View Dark](public/file_view_dark_mode.png) | ![File View Light](public/file_view_light_mode.png) |
+
 ## Tech Stack
 
 - ⚛️ React (Vite)
