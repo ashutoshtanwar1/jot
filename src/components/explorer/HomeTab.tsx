@@ -1,4 +1,5 @@
 import React from 'react';
+import { ulid } from 'ulid';
 import { useExplorer } from './explorer-context';
 import { NodePreview } from './NodePreview';
 import RecentlyOpened from './RecentlyOpened';
@@ -8,7 +9,7 @@ const HomeTab: React.FC = () => {
   const { addNode, openFile } = useExplorer();
 
   const handleCreateFromTemplate = (template: (typeof explorerTemplates)[number]) => {
-    const newId = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+    const newId = ulid();
     addNode(null, {
       id: newId,
       name: template.name.replace(/^\d+\. /, ''),
@@ -20,15 +21,15 @@ const HomeTab: React.FC = () => {
   };
 
   return (
-    <div className="mt-4 w-full flex items-center justify-center h-full text-muted-foreground flex-col">
+    <div className="w-full flex items-center justify-center h-full text-muted-foreground flex-col px-3">
       <RecentlyOpened />
 
-      <div className="mt-8">
+      <div className="px-0 md:px-16 mt-8 w-full max-w-full">
         <span className="mb-2 text-sm font-semibold text-muted-foreground">
           Start from a template
         </span>
 
-        <div className="flex flex-row gap-3 overflow-auto w-[640px]">
+        <div className="flex flex-nowrap flex-row gap-3 overflow-x-auto w-full">
           {explorerTemplates.map(template => (
             <NodePreview
               key={template.id}

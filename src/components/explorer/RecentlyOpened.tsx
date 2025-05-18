@@ -35,7 +35,7 @@ export const RecentlyOpened: React.FC = () => {
               className="w-full flex justify-between items-center text-xs px-2 py-1"
               onClick={() => openFile(file.id)}
             >
-              <span className="truncate max-w-[120px]">{file.name}</span>
+              <span className="truncate max-w-[40vw] sm:max-w-[120px]">{file.name}</span>
               <span className="text-muted-foreground ml-2 text-[10px]">
                 {formatDate(file.lastOpenedDate)}
               </span>

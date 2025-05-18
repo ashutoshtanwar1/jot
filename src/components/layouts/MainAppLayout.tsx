@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { ExplorerNode } from '../explorer/explorer-context';
 import { useExplorer } from '../explorer/explorer-context';
 import { EditorLayout } from './EditorLayout';
@@ -18,10 +18,18 @@ function findNodeById(nodes: ExplorerNode[], id: string): ExplorerNode | null {
 }
 
 export const MainAppLayout: React.FC = () => {
-  const { tree, openFileIds, activeId, setActiveId, closeFile, updateFileContent } = useExplorer();
+  const {
+    tree,
+    openFileIds,
+    activeId,
+    setActiveId,
+    closeFile,
+    updateFileContent,
+    sidebarOpen,
+    setSidebarOpen,
+  } = useExplorer();
   const openFiles = openFileIds.map(id => findNodeById(tree, id)).filter(Boolean) as ExplorerNode[];
   const activeFile = activeId ? findNodeById(tree, activeId) : null;
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="h-dvh w-dvw flex flex-col bg-background text-foreground">

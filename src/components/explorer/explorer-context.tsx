@@ -24,6 +24,8 @@ export type ExplorerContextType = {
   removeNode: (id: string) => void;
   renameNode: (id: string, name: string) => void;
   updateFileContent: (id: string, content: string) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ExplorerContext = createContext<ExplorerContextType | undefined>(undefined);
@@ -73,6 +75,9 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     return [];
   });
+
+  const isMobileScreen = window.innerWidth <= 768;
+  const [sidebarOpen, setSidebarOpen] = useState(isMobileScreen ? false : true);
 
   // Persist tree to localStorage whenever it changes
   useEffect(() => {
@@ -168,6 +173,9 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setOpenFileIds(prev => (prev.includes(id) ? prev : [...prev, id]));
       setActiveId(id);
       const now = new Date().toISOString();
+      if (isMobileScreen) {
+        setSidebarOpen(false);
+      }
       setTree(prev =>
         updateNode(prev, id, node => {
           if (!node.isFolder) {
@@ -176,7 +184,7 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }),
       );
     },
-    [updateNode],
+    [isMobileScreen, updateNode],
   );
 
   const closeFile = useCallback(
@@ -184,8 +192,11 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const newOpenFileIds = openFileIds.filter(fid => fid !== id);
       setActiveId(prev => (prev === id ? newOpenFileIds.at(-1) ?? null : prev));
       setOpenFileIds(newOpenFileIds);
+      if (isMobileScreen && newOpenFileIds.length === 0) {
+        setSidebarOpen(true);
+      }
     },
-    [openFileIds],
+    [isMobileScreen, openFileIds],
   );
 
   const updateFileContent = useCallback(
@@ -217,6 +228,8 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         removeNode,
         renameNode,
         updateFileContent,
+        sidebarOpen,
+        setSidebarOpen,
       }}
     >
       {children}

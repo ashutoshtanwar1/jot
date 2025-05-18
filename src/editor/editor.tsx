@@ -128,13 +128,15 @@ export function Editor({ content = '', onChange, editable = true }: EditorProps)
   return (
     <Container className="h-full">
       <div className="h-full flex flex-col">
-        <div className="flex-1 mt-4 p-4 overflow-y-auto bg-background">
+        <div className="flex-1 mt-2 sm:mt-4 p-2 sm:p-4 overflow-y-auto bg-background">
           <EditorContent editor={editor} className="tiptap min-h-full outline-none" />
         </div>
 
         <Separator />
 
-        <EditorToolbar editor={editor} counts={counts} />
+        <div className="overflow-x-auto w-full">
+          <EditorToolbar editor={editor} counts={counts} />
+        </div>
       </div>
     </Container>
   );

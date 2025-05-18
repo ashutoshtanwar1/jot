@@ -35,19 +35,21 @@ export const TabsLayout: React.FC<TabsLayoutProps> = ({
   };
 
   return (
-    <div className="flex flex-nowrap overflow-x-auto border-b-2 bg-muted/30 h-10 overflow-y-hidden">
+    <div className="flex flex-nowrap overflow-x-auto border-b-2 bg-muted/30 h-10 overflow-y-hidden w-full">
       {openFiles.map(file => (
         <div
           key={file.id}
           ref={el => {
             tabRefs.current[file.id] = el;
           }}
-          className={`flex-shrink-0 px-4 cursor-pointer flex items-center gap-2 border-r-2 ${
+          className={`flex-shrink-0 px-2 sm:px-4 cursor-pointer flex items-center gap-1 sm:gap-2 border-r-2 ${
             activeId === file.id ? 'bg-background' : 'text-muted-foreground'
           }`}
           onClick={() => setActiveId(file.id)}
         >
-          <span className="truncate max-w-[120px] text-xs py-4 px-3">{file.name}</span>
+          <span className="truncate max-w-[60vw] sm:max-w-[120px] text-xs py-2 sm:py-4 px-2 sm:px-3">
+            {file.name}
+          </span>
           <Button
             variant="ghost"
             size="xs"

@@ -1,5 +1,6 @@
 import { cn } from '@/design-system';
 import React, { useState } from 'react';
+import { ulid } from 'ulid';
 import ExplorerNodeMenu from './ExplorerNodeMenu';
 import NodeIcon from './NodeIcon';
 import type { ExplorerNode } from './explorer-context';
@@ -12,7 +13,7 @@ const ExplorerNodeItem: React.FC<{ node: ExplorerNode; level: number }> = ({ nod
   const [name, setName] = useState(node.name);
 
   const handleAdd = (isFolder: boolean) => {
-    const newId = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+    const newId = ulid();
     addNode(node.id, {
       id: newId,
       name: isFolder ? 'New Folder' : 'New Note',
@@ -47,12 +48,13 @@ const ExplorerNodeItem: React.FC<{ node: ExplorerNode; level: number }> = ({ nod
         )}
         style={{ paddingLeft: `${level * 16 + 8 + (node.isFolder ? 0 : 0)}px` }}
         onClick={handleItemClick}
+        onTouchEndCapture={handleItemClick}
       >
         <NodeIcon isFolder={node.isFolder} expanded={expanded} />
 
         {editing ? (
           <input
-            className="bg-transparent border-b-2 border-gray-400 outline-none px-1 text-sm w-32"
+            className="bg-transparent border-b-2 border-gray-400 outline-none px-1 text-sm w-20 sm:w-32"
             value={name}
             autoFocus
             onChange={e => setName(e.target.value)}
@@ -64,7 +66,7 @@ const ExplorerNodeItem: React.FC<{ node: ExplorerNode; level: number }> = ({ nod
           />
         ) : (
           <span
-            className="flex-1 truncate text-sm select-none text-muted-foreground"
+            className="flex-1 truncate text-sm select-none text-muted-foreground max-w-[40vw] sm:max-w-full"
             onDoubleClick={() => setEditing(true)}
           >
             {node.name}
