@@ -45,7 +45,7 @@ const ExplorerNodeItem: React.FC<{ node: ExplorerNode; level: number }> = ({ nod
       <Tooltip
         key={`${node.id}${node.content}`}
         content={<NodeContentPreview node={node} />}
-        className={node.isFolder ? 'hidden' : ''}
+        className={cn('border-2 border-foreground/20', node.isFolder ? 'hidden' : '')}
         side="right"
       >
         <div

@@ -1,4 +1,4 @@
-import { Button, Tooltip } from '@/design-system';
+import { Button, cn, Tooltip } from '@/design-system';
 import { Home, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import type { ExplorerNode } from '../explorer/explorer-context';
@@ -41,7 +41,7 @@ export const TabsLayout: React.FC<TabsLayoutProps> = ({
         <Tooltip
           key={`${file.id}${file.content}`}
           content={<NodeContentPreview node={file} />}
-          className={file.isFolder ? 'hidden' : ''}
+          className={cn('border-2 border-foreground/20', file.isFolder ? 'hidden' : '')}
           side="bottom"
         >
           <div
