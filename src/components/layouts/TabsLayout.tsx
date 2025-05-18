@@ -1,7 +1,8 @@
-import { Button } from '@/design-system';
+import { Button, Tooltip } from '@/design-system';
 import { Home, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import type { ExplorerNode } from '../explorer/explorer-context';
+import { NodeContentPreview } from '../explorer/NodePreview';
 
 interface TabsLayoutProps {
   openFiles: ExplorerNode[];
@@ -37,28 +38,35 @@ export const TabsLayout: React.FC<TabsLayoutProps> = ({
   return (
     <div className="flex flex-nowrap overflow-x-auto border-b-2 bg-muted/30 h-10 overflow-y-hidden w-full">
       {openFiles.map(file => (
-        <div
-          key={file.id}
-          ref={el => {
-            tabRefs.current[file.id] = el;
-          }}
-          className={`flex-shrink-0 px-2 sm:px-4 cursor-pointer flex items-center gap-1 sm:gap-2 border-r-2 ${
-            activeId === file.id ? 'bg-background' : 'text-muted-foreground'
-          }`}
-          onClick={() => setActiveId(file.id)}
+        <Tooltip
+          key={`${file.id}${file.content}`}
+          content={<NodeContentPreview node={file} />}
+          className={file.isFolder ? 'hidden' : ''}
+          side="bottom"
         >
-          <span className="truncate max-w-[60vw] sm:max-w-[120px] text-xs py-2 sm:py-4 px-2 sm:px-3">
-            {file.name}
-          </span>
-          <Button
-            variant="ghost"
-            size="xs"
-            className="p-0 text-xs text-muted-foreground hover:text-primary hover:bg-transparent"
-            onClick={e => handleClose(e, file.id)}
+          <div
+            key={file.id}
+            ref={el => {
+              tabRefs.current[file.id] = el;
+            }}
+            className={`flex-shrink-0 px-2 sm:px-4 cursor-pointer flex items-center gap-1 sm:gap-2 border-r-2 ${
+              activeId === file.id ? 'bg-background' : 'text-muted-foreground'
+            }`}
+            onClick={() => setActiveId(file.id)}
           >
-            <X />
-          </Button>
-        </div>
+            <span className="truncate max-w-[60vw] sm:max-w-[120px] text-xs py-2 sm:py-4 px-2 sm:px-3">
+              {file.name}
+            </span>
+            <Button
+              variant="ghost"
+              size="xs"
+              className="p-0 text-xs text-muted-foreground hover:text-primary hover:bg-transparent"
+              onClick={e => handleClose(e, file.id)}
+            >
+              <X />
+            </Button>
+          </div>
+        </Tooltip>
       ))}
       <Button
         variant="ghost"

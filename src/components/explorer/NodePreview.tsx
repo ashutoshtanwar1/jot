@@ -19,7 +19,7 @@ export const NodeContentPreview: React.FC<NodeContentPreviewProps> = ({ node, cl
   return (
     <div
       className={cn(
-        'my-2 p-0 rounded [mask-image:linear-gradient(to_top,transparent,black_50%)]',
+        'shadow-md my-2 p-0 rounded [mask-image:linear-gradient(to_top,transparent,black_50%)]',
         className,
       )}
     >
