@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "oouo-diogo-perdigao.docthis",
+    "formulahendry.auto-rename-tag",
+    "streetsidesoftware.code-spell-checker",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "meganrogge.template-string-converter",
+    "yoavbls.pretty-ts-errors"
+  ]
+}
