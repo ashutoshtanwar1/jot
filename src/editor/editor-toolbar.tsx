@@ -247,7 +247,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             if (!Icon) return null;
             return (
               <ToolbarButton
-                key={Icon.displayName || Icon.name || idx}
+                key={`button-${idx}`}
                 onClick={item.onClick}
                 isActive={item.isActive}
                 tooltipContent={item.tooltip}
