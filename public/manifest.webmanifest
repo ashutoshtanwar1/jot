@@ -8,42 +8,18 @@
   "description": "Jot is a simple note-taking app that allows you to create and manage your notes.",
   "icons": [
     {
-      "src": "/launchericon-192-192.png",
+      "src": "launchericon-192-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/launchericon-512-512.png",
+      "src": "launchericon-512-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/launchericon-144-144.png",
+      "src": "launchericon-144-144.png",
       "sizes": "144x144",
-      "type": "image/png"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/home_page_dark_mode.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/home_page_light_mode.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/file_view_dark_mode.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    },
-    {
-      "src": "/file_view_light_mode.png",
-      "sizes": "1280x720",
       "type": "image/png"
     }
   ]

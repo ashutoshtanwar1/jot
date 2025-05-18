@@ -1,19 +1,14 @@
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/design-system/components/ui/command';
-import { formatDate } from '@/design-system/lib/utils';
-import { Command, FileText, FolderOpen } from 'lucide-react';
+import { CommandDialog } from '@/design-system/components/ui/command';
 import React, { useEffect, useState } from 'react';
 import { ulid } from 'ulid';
 import type { ExplorerNode } from './explorer/explorer-context';
 import { useExplorer } from './explorer/explorer-context';
+import { SearchCommandInput } from './search-command-modal/SearchCommandInput';
+import { SearchCommandList } from './search-command-modal/SearchCommandList';
+import { flattenNotes, getAllItems } from './search-command-modal/utils';
+import { useTheme } from './theme/use-theme';
 
-type CommandItemType = {
+export type CommandItemType = {
   type: 'command';
   id: string;
   name: string;
@@ -21,7 +16,7 @@ type CommandItemType = {
   score: number;
 };
 
-type NoteItemType = {
+export type NoteItemType = {
   type: 'file' | 'folder';
   id: string;
   name: string;
@@ -32,73 +27,11 @@ type NoteItemType = {
 
 type CommonItem = CommandItemType | NoteItemType;
 
-function flattenNotes(tree: ExplorerNode[], includeFolders = false): ExplorerNode[] {
-  let notes: ExplorerNode[] = [];
-  for (const node of tree) {
-    if (node.isFolder && node.items.length > 0) {
-      notes = notes.concat(flattenNotes(node.items, includeFolders));
-    }
-
-    if (!node.isFolder || includeFolders) {
-      notes.push(node);
-    }
-  }
-  return notes;
-}
-
-function basicSemanticScore(query: string, note: ExplorerNode) {
-  const queryTokens = query.toLowerCase().split(/\s+/);
-  const text = (note.name + ' ' + (note.content || '')).toLowerCase();
-  let score = 0;
-  for (const token of queryTokens) {
-    if (text.includes(token)) score += 1;
-  }
-  return score;
-}
-
-// Helper to unify commands and notes/folders
-function getAllItems(
-  query: string,
-  notes: ExplorerNode[],
-  commands: { name: string; action: () => void }[],
-): CommonItem[] {
-  // Score and map notes/folders
-  const noteItems: NoteItemType[] = query
-    ? notes
-        .map(note => ({
-          type: note.isFolder ? ('folder' as const) : ('file' as const),
-          id: note.id,
-          name: note.name,
-          content: note.content,
-          score: basicSemanticScore(query, note),
-          node: note,
-        }))
-        .filter(({ score }) => score > 0)
-    : [];
-
-  // Score and map commands
-  const commandItems: CommandItemType[] = query
-    ? commands
-        .map(cmd => ({
-          type: 'command' as const,
-          id: cmd.name,
-          name: cmd.name,
-          action: cmd.action,
-          score: cmd.name.toLowerCase().includes(query.toLowerCase()) ? 1 : 0,
-        }))
-        .filter(({ score }) => score > 0)
-    : [];
-
-  // Sort by score, then name
-  return [...commandItems, ...noteItems].sort(
-    (a, b) => b.score - a.score || a.name.localeCompare(b.name),
-  );
-}
-
 export const SearchCommandModal: React.FC = () => {
-  const { tree, setActiveId, addNode, setSearchOpen, searchOpen } = useExplorer();
+  const { tree, setActiveId, addNode, setSearchOpen, searchOpen, setSidebarOpen } = useExplorer();
   const [query, setQuery] = useState('');
   const allNodes = flattenNotes(tree, true);
+  const { theme, setTheme } = useTheme();
 
   const handleAddNode = (type: 'folder' | 'note') => {
     const nodeId = ulid();
@@ -120,12 +53,32 @@ export const SearchCommandModal: React.FC = () => {
       name: 'Create new folder',
       action: () => handleAddNode('folder'),
     },
+    {
+      name: 'Toggle theme',
+      action: () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+      },
+    },
+    {
+      name: 'Toggle sidebar',
+      action: () => {
+        setSidebarOpen(sidebarOpen => !sidebarOpen);
+      },
+    },
+    {
+      name: 'Home',
+      action: () => {
+        setActiveId(null);
+      },
+    },
   ];
-  const items: CommonItem[] = getAllItems(query, allNodes, COMMANDS);
+  const items = getAllItems(query, allNodes, COMMANDS);
   const recentFiles = allNodes
-    .sort((a, b) => (b.lastOpenedDate || '').localeCompare(a.lastOpenedDate || ''))
+    .sort((a: ExplorerNode, b: ExplorerNode) =>
+      (b.lastOpenedDate || '').localeCompare(a.lastOpenedDate || ''),
+    )
     .map(
-      f =>
+      (f: ExplorerNode) =>
         ({
           type: f.isFolder ? 'folder' : 'file',
           id: f.id,
@@ -142,12 +95,6 @@ export const SearchCommandModal: React.FC = () => {
         action: cmd.action,
       } as CommandItemType),
   );
-
-  function renderIcon(item: CommonItem) {
-    if (item.type === 'command') return <Command className="w-4 h-4" />;
-    if (item.type === 'folder') return <FolderOpen className="w-4 h-4" />;
-    return <FileText className="w-4 h-4" />;
-  }
 
   function handleSelect(item: CommonItem) {
     if (item.type === 'command') {
@@ -172,34 +119,11 @@ export const SearchCommandModal: React.FC = () => {
 
   return (
     <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-      <CommandInput
-        placeholder="Type a command or search notes..."
-        value={query}
-        onValueChange={setQuery}
-        autoFocus
+      <SearchCommandInput query={query} setQuery={setQuery} />
+      <SearchCommandList
+        items={items.length > 0 ? items : [...commandItems, ...recentFiles]}
+        onSelect={handleSelect}
       />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Results">
-          {(items.length > 0 ? items : [...commandItems, ...recentFiles]).map(item => (
-            <CommandItem
-              key={item.id}
-              value={`${item.id} ${item.name}`}
-              onSelect={() => handleSelect(item)}
-            >
-              {renderIcon(item)}
-              <div className="flex flex-row items-center justify-between w-full">
-                <span className="truncate">{item.name}</span>
-                {item.type !== 'command' && (
-                  <span className="text-[9px] text-muted-foreground/40">
-                    {`Last opened ${formatDate(item.node.lastOpenedDate).toLowerCase()}`}
-                  </span>
-                )}
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
     </CommandDialog>
   );
 };
