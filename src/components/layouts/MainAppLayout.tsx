@@ -27,6 +27,7 @@ export const MainAppLayout: React.FC = () => {
     updateFileContent,
     sidebarOpen,
     setSidebarOpen,
+    setSearchOpen,
   } = useExplorer();
   const openFiles = openFileIds.map(id => findNodeById(tree, id)).filter(Boolean) as ExplorerNode[];
   const activeFile = activeId ? findNodeById(tree, activeId) : null;
@@ -38,6 +39,7 @@ export const MainAppLayout: React.FC = () => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         openHomeTab={openHomeTab}
+        setSearchOpen={setSearchOpen}
       />
       <main className="flex flex-1 min-h-0">
         <SidebarLayout open={sidebarOpen} />

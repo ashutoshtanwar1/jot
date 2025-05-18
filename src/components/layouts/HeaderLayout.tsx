@@ -1,6 +1,6 @@
 import { Button, Container, Tooltip } from '@/design-system';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
-import React from 'react';
+import { PanelRightClose, PanelRightOpen, Search } from 'lucide-react';
+import React, { useCallback, useEffect } from 'react';
 import { ThemeToggle } from '../theme/theme-toggle';
 
 const AppIcon = ({ onClick }: { onClick: () => void }) => (
@@ -13,30 +13,70 @@ const AppIcon = ({ onClick }: { onClick: () => void }) => (
   </Button>
 );
 
-export const HeaderLayout: React.FC<{
+interface HeaderLayoutProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   openHomeTab: () => void;
-}> = ({ sidebarOpen, setSidebarOpen, openHomeTab }) => (
-  <header className="border-b-2 z-10 flex items-center justify-between">
-    <Tooltip content={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'} side="bottom">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="mx-2"
-        aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-        onClick={() => setSidebarOpen(!sidebarOpen)}
+  setSearchOpen: (open: boolean) => void;
+}
+
+export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
+  sidebarOpen,
+  setSidebarOpen,
+  openHomeTab,
+  setSearchOpen,
+}) => {
+  const handleSidebarOpen = useCallback(() => {
+    setSidebarOpen(!sidebarOpen);
+  }, [sidebarOpen, setSidebarOpen]);
+
+  // Cmd+Shift+B to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // on Mac, metaKey is Cmd
+      if (e.metaKey && e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        handleSidebarOpen();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSidebarOpen]);
+
+  return (
+    <header className="border-b-2 z-10 flex items-center justify-between">
+      <Tooltip
+        content={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+        shortcut="⌘ + ⇧ + B"
+        side="bottom"
       >
-        {!sidebarOpen ? (
-          <PanelRightClose className="w-5 h-5" />
-        ) : (
-          <PanelRightOpen className="w-5 h-5" />
-        )}
-      </Button>
-    </Tooltip>
-    <Container className="p-2 w-full flex items-center justify-between">
-      <AppIcon onClick={openHomeTab} />
-      <ThemeToggle />
-    </Container>
-  </header>
-);
+        <Button
+          variant="ghost"
+          size="icon"
+          className="mx-2"
+          aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          onClick={handleSidebarOpen}
+        >
+          {!sidebarOpen ? (
+            <PanelRightClose className="w-5 h-5" />
+          ) : (
+            <PanelRightOpen className="w-5 h-5" />
+          )}
+        </Button>
+      </Tooltip>
+      <Container className="p-2 w-full flex items-center justify-between">
+        <AppIcon onClick={openHomeTab} />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-1/3 px-2 flex flex-row items-center gap-2 border-2 border-muted-foreground/20 rounded-full"
+          onClick={() => setSearchOpen(true)}
+        >
+          <Search className="w-5 h-5 text-muted-foreground/80" />
+          <span className="text-xs text-muted-foreground/80 hidden sm:block">Search (⌘ + K)</span>
+        </Button>
+        <ThemeToggle />
+      </Container>
+    </header>
+  );
+};

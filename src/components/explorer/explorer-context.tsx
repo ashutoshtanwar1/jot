@@ -26,6 +26,8 @@ export type ExplorerContextType = {
   updateFileContent: (id: string, content: string) => void;
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  searchOpen: boolean;
+  setSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ExplorerContext = createContext<ExplorerContextType | undefined>(undefined);
@@ -78,7 +80,7 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const isMobileScreen = window.innerWidth <= 768;
   const [sidebarOpen, setSidebarOpen] = useState(isMobileScreen ? false : true);
-
+  const [searchOpen, setSearchOpen] = useState(false);
   // Persist tree to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(TREE_KEY, JSON.stringify(tree));
@@ -230,6 +232,8 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateFileContent,
         sidebarOpen,
         setSidebarOpen,
+        searchOpen,
+        setSearchOpen,
       }}
     >
       {children}
