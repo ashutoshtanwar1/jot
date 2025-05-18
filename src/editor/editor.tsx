@@ -111,6 +111,13 @@ export function Editor({ content = '', onChange, editable = true }: EditorProps)
           class: editorClassName,
         },
       },
+      onCreate: ({ editor }) => {
+        // TOOD: Replace this with word count extension
+        const text = editor.getText().trim();
+        const words = text.length > 0 ? text.split(' ').length : 0;
+        const chars = text.length;
+        setCounts({ words, chars });
+      },
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();
         onChange?.(html);
