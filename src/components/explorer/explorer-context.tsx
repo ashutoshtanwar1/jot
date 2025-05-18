@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { explorerTemplates } from './templates';
 
 export type ExplorerNode = {
   id: string;
@@ -6,6 +7,9 @@ export type ExplorerNode = {
   isFolder: boolean;
   items: ExplorerNode[];
   content?: string; // Only for files
+  createDate?: string; // ISO string
+  lastUpdatedDate?: string; // ISO string
+  lastOpenedDate?: string; // ISO string
 };
 
 export type ExplorerContextType = {
@@ -24,21 +28,13 @@ export type ExplorerContextType = {
 
 const ExplorerContext = createContext<ExplorerContextType | undefined>(undefined);
 
+// The initial tree structure, now including the "Examples" folder and template notes
 const initialTree: ExplorerNode[] = [
   {
-    id: '1',
-    name: 'Sample Folder',
+    id: 'examples-folder',
+    name: 'Examples',
     isFolder: true,
-    items: [
-      {
-        id: '2',
-        name: 'Sample Note',
-        isFolder: false,
-        items: [],
-        content:
-          '<h1 class="tiptap-heading">Sample Note</h1><p class="tiptap-paragraph">Sample text...</p>',
-      },
-    ],
+    items: explorerTemplates,
   },
 ];
 
@@ -121,14 +117,21 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const addNode = useCallback(
     (parentId: string | null, node: ExplorerNode) => {
+      const now = new Date().toISOString();
+      const nodeWithDates = {
+        ...node,
+        createDate: node.createDate || now,
+        lastUpdatedDate: node.lastUpdatedDate || now,
+        lastOpenedDate: node.lastOpenedDate || undefined,
+      };
       if (!parentId) {
-        setTree(prev => [...prev, node]);
+        setTree(prev => [...prev, nodeWithDates]);
         return;
       }
       setTree(prev =>
         updateNode(prev, parentId, parent => {
           if (parent.isFolder) {
-            parent.items = [...parent.items, node];
+            parent.items = [...parent.items, nodeWithDates];
           }
         }),
       );
@@ -160,21 +163,40 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [updateNode],
   );
 
-  const openFile = useCallback((id: string) => {
-    setOpenFileIds(prev => (prev.includes(id) ? prev : [...prev, id]));
-    setActiveId(id);
-  }, []);
+  const openFile = useCallback(
+    (id: string) => {
+      setOpenFileIds(prev => (prev.includes(id) ? prev : [...prev, id]));
+      setActiveId(id);
+      const now = new Date().toISOString();
+      setTree(prev =>
+        updateNode(prev, id, node => {
+          if (!node.isFolder) {
+            node.lastOpenedDate = now;
+          }
+        }),
+      );
+    },
+    [updateNode],
+  );
 
-  const closeFile = useCallback((id: string) => {
-    setOpenFileIds(prev => prev.filter(fid => fid !== id));
-    setActiveId(prev => (prev === id ? null : prev));
-  }, []);
+  const closeFile = useCallback(
+    (id: string) => {
+      const newOpenFileIds = openFileIds.filter(fid => fid !== id);
+      setActiveId(prev => (prev === id ? newOpenFileIds.at(-1) ?? null : prev));
+      setOpenFileIds(newOpenFileIds);
+    },
+    [openFileIds],
+  );
 
   const updateFileContent = useCallback(
     (id: string, content: string) => {
+      const now = new Date().toISOString();
       setTree(prev =>
         updateNode(prev, id, node => {
-          if (!node.isFolder) node.content = content;
+          if (!node.isFolder) {
+            node.content = content;
+            node.lastUpdatedDate = now;
+          }
         }),
       );
     },

@@ -24,11 +24,11 @@ export const MainAppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="h-dvh flex flex-col bg-background text-foreground">
+    <div className="h-dvh w-dvw flex flex-col bg-background text-foreground">
       <HeaderLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <main className="flex flex-1 min-h-0">
         <SidebarLayout open={sidebarOpen} />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-x-auto">
           <TabsLayout
             openFiles={openFiles}
             activeId={activeId}

@@ -20,6 +20,7 @@ import {
   Table,
   Underline,
 } from 'lucide-react';
+import React from 'react';
 
 type ToolbarButtonProps = {
   onClick: () => void;
@@ -55,6 +56,7 @@ function ToolbarButton({
 
 interface EditorToolbarProps {
   editor: Editor | null;
+  counts: { words: number; chars: number };
 }
 
 const ToolbarSeparator = () => <Separator orientation="vertical" className="opacity-50 my-1" />;
@@ -104,16 +106,13 @@ const blockTypes = [
   },
 ];
 
-export function EditorToolbar({ editor }: EditorToolbarProps) {
+export function EditorToolbar({ editor, counts }: EditorToolbarProps) {
+  const words = counts.words;
+  const chars = counts.chars;
+
   if (!editor) {
     return null;
   }
-
-  // Calculate word and character count
-  // This is a custom implementation since @tiptap/extension-word-count does not exist
-  const text = editor.getText();
-  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-  const charCount = text.length;
 
   // Toolbar configuration array
   type ToolbarItem =
@@ -263,10 +262,10 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </div>
       <div className="flex items-center gap-4 text-xs text-muted-foreground/50 px-2">
         <span>
-          Words: <span className="text-primary/50 font-medium">{wordCount}</span>
+          Words: <span className="text-primary/50 font-medium">{words}</span>
         </span>
         <span>
-          Chars: <span className="text-primary/50 font-medium">{charCount}</span>
+          Chars: <span className="text-primary/50 font-medium">{chars}</span>
         </span>
       </div>
     </div>

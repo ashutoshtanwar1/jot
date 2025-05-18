@@ -3,6 +3,7 @@ import { EditorToolbar } from '@/editor/editor-toolbar';
 import { useEditorStyles } from '@/editor/use-editor-styles';
 import Bold from '@tiptap/extension-bold';
 import BulletList from '@tiptap/extension-bullet-list';
+import CharacterCount from '@tiptap/extension-character-count';
 import Code from '@tiptap/extension-code';
 import CodeBlock from '@tiptap/extension-code-block';
 import Document from '@tiptap/extension-document';
@@ -30,10 +31,12 @@ import {
   ReactNodeViewRenderer,
   useEditor,
 } from '@tiptap/react';
+import { useState } from 'react';
 
 interface EditorProps {
   content?: string;
   onChange?: (content: string) => void;
+  editable?: boolean;
 }
 
 const TaskItemNodeView = (props: NodeViewProps) => {
@@ -55,57 +58,72 @@ const TaskItemNodeView = (props: NodeViewProps) => {
   );
 };
 
-export function Editor({ content = '', onChange }: EditorProps) {
+export function Editor({ content = '', onChange, editable = true }: EditorProps) {
   const { extensionConfigs, editorClassName } = useEditorStyles();
 
-  const editor = useEditor({
-    extensions: [
-      // Core extensions
-      Document,
-      Paragraph.configure(extensionConfigs.Paragraph),
-      Heading.configure(extensionConfigs.Heading),
-      Text,
-      History,
-      HardBreak,
+  const [counts, setCounts] = useState({ words: 0, chars: 0 });
 
-      // Lists
-      ListItem,
-      BulletList,
-      OrderedList,
-      TaskList,
-      TaskItem.extend({
-        addNodeView() {
-          return ReactNodeViewRenderer(TaskItemNodeView);
+  const editor = useEditor(
+    {
+      extensions: [
+        // Core extensions
+        Document,
+        Paragraph.configure(extensionConfigs.Paragraph),
+        Heading.configure(extensionConfigs.Heading),
+        Text,
+        History,
+        HardBreak,
+
+        // Lists
+        ListItem,
+        BulletList,
+        OrderedList,
+        TaskList,
+        TaskItem.extend({
+          addNodeView() {
+            return ReactNodeViewRenderer(TaskItemNodeView);
+          },
+        }),
+
+        // Tables
+        Table.configure(extensionConfigs.Table),
+        TableHeader,
+        TableCell,
+        TableRow,
+
+        // Placeholder
+        Placeholder.configure(extensionConfigs.Placeholder),
+
+        // Marks
+        Bold,
+        Italic,
+        Underline,
+        Code,
+        CodeBlock,
+
+        // Character/Word Count
+        CharacterCount,
+      ],
+      content,
+      editable,
+      editorProps: {
+        attributes: {
+          class: editorClassName,
         },
-      }),
+      },
+      onUpdate: ({ editor }) => {
+        const html = editor.getHTML();
+        onChange?.(html);
 
-      // Tables
-      Table.configure(extensionConfigs.Table),
-      TableHeader,
-      TableCell,
-      TableRow,
-
-      // Placeholder
-      Placeholder.configure(extensionConfigs.Placeholder),
-
-      // Marks
-      Bold,
-      Italic,
-      Underline,
-      Code,
-      CodeBlock,
-    ],
-    content,
-    editorProps: {
-      attributes: {
-        class: editorClassName,
+        // TOOD: Replace this with word count extension
+        const text = editor.getText().trim();
+        const words = text.length > 0 ? text.split(' ').length : 0;
+        const chars = text.length;
+        setCounts({ words, chars });
       },
     },
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange?.(html);
-    },
-  });
+    [setCounts],
+  );
 
   return (
     <Container className="h-full">
@@ -116,7 +134,7 @@ export function Editor({ content = '', onChange }: EditorProps) {
 
         <Separator />
 
-        <EditorToolbar editor={editor} />
+        <EditorToolbar editor={editor} counts={counts} />
       </div>
     </Container>
   );

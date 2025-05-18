@@ -1,6 +1,7 @@
 import { Editor } from '@/editor/editor';
 import React from 'react';
 import type { ExplorerNode } from '../explorer/explorer-context';
+import HomeTab from '../explorer/HomeTab';
 
 interface EditorLayoutProps {
   activeFile: ExplorerNode | null;
@@ -9,16 +10,14 @@ interface EditorLayoutProps {
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({ activeFile, updateFileContent }) => (
   <div className="flex-1 overflow-y-scroll">
-    {activeFile ? (
+    {activeFile && !activeFile.isFolder ? (
       <Editor
         key={activeFile.id}
         content={activeFile.content || ''}
         onChange={content => updateFileContent(activeFile.id, content)}
       />
     ) : (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        Select a file to start editing
-      </div>
+      <HomeTab />
     )}
   </div>
 );

@@ -17,6 +17,7 @@
     "@radix-ui/react-tooltip": "^1.2.6",
     "@shadcn/ui": "^0.0.4",
     "@tiptap/extension-bullet-list": "^2.12.0",
+    "@tiptap/extension-character-count": "^2.12.0",
     "@tiptap/extension-code": "^2.12.0",
     "@tiptap/extension-document": "^2.12.0",
     "@tiptap/extension-hard-break": "^2.12.0",
