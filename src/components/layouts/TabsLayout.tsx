@@ -1,12 +1,12 @@
 import { Button } from '@/design-system';
-import { X } from 'lucide-react';
+import { Home, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import type { ExplorerNode } from '../explorer/explorer-context';
 
 interface TabsLayoutProps {
   openFiles: ExplorerNode[];
   activeId: string | null;
-  setActiveId: (id: string) => void;
+  setActiveId: (id: string | null) => void;
   closeFile: (id: string) => void;
 }
 
@@ -60,6 +60,14 @@ export const TabsLayout: React.FC<TabsLayoutProps> = ({
           </Button>
         </div>
       ))}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="p-0 text-xs text-muted-foreground hover:text-primary hover:bg-transparent"
+        onClick={() => setActiveId(null)}
+      >
+        <Home />
+      </Button>
     </div>
   );
 };

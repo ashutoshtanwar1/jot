@@ -1,4 +1,4 @@
-import { Button } from '@/design-system';
+import { Button, cn } from '@/design-system';
 import { Card, CardContent, CardHeader } from '@/design-system/components/ui/card';
 import { Editor } from '@/editor/editor';
 import React from 'react';
@@ -10,6 +10,31 @@ interface NodePreviewProps {
   buttonText: string;
 }
 
+interface NodeContentPreviewProps {
+  node: ExplorerNode;
+  className?: string;
+}
+
+export const NodeContentPreview: React.FC<NodeContentPreviewProps> = ({ node, className }) => {
+  return (
+    <div
+      className={cn(
+        'my-2 p-0 rounded [mask-image:linear-gradient(to_top,transparent,black_50%)]',
+        className,
+      )}
+    >
+      <div className="w-full h-[80px] sm:w-[280px] sm:h-[120px] overflow-hidden relative">
+        <div
+          className="scale-50 origin-top-left w-[220%]"
+          style={{ pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}
+        >
+          <Editor content={node.content || ''} editable={false} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const NodePreview: React.FC<NodePreviewProps> = ({ node, onClick, buttonText }) => {
   return (
     <Card className="my-2 bg-background/80 border-border/60 shadow-sm hover:shadow-lg transition-shadow w-full max-w-xs sm:max-w-sm">
@@ -20,16 +45,7 @@ export const NodePreview: React.FC<NodePreviewProps> = ({ node, onClick, buttonT
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="my-2 p-0 rounded [mask-image:linear-gradient(to_top,transparent,black_50%)]">
-          <div className="w-full h-[80px] sm:w-[280px] sm:h-[120px] overflow-hidden relative">
-            <div
-              className="scale-50 origin-top-left w-[220%]"
-              style={{ pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}
-            >
-              <Editor content={node.content || ''} editable={false} />
-            </div>
-          </div>
-        </div>
+        <NodeContentPreview node={node} />
       </CardContent>
     </Card>
   );
