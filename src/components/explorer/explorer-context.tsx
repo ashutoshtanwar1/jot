@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { getExplorerItem, removeExplorerItem, setExplorerItem } from './explorer-storage';
 import { explorerTemplates } from './templates';
 
 export type ExplorerNode = {
@@ -47,58 +48,53 @@ const ACTIVE_ID_KEY = 'explorer-activeId';
 const TREE_KEY = 'explorer-tree';
 
 export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize tree from localStorage if present
-  const [tree, setTree] = useState<ExplorerNode[]>(() => {
-    const stored = localStorage.getItem(TREE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return initialTree;
-      }
-    }
-    return initialTree;
-  });
+  // Initial state: defaults, will be updated async
+  const [tree, setTree] = useState<ExplorerNode[]>(initialTree);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [openFileIds, setOpenFileIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize activeId from localStorage if present
-  const [activeId, setActiveId] = useState<string | null>(() => {
-    return localStorage.getItem(ACTIVE_ID_KEY) || null;
-  });
-
-  // Initialize openFileIds from localStorage if present
-  const [openFileIds, setOpenFileIds] = useState<string[]>(() => {
-    const stored = localStorage.getItem(OPEN_FILE_IDS_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
+  // Load from IndexedDB on mount
+  useEffect(() => {
+    (async () => {
+      const loadedTree = await getExplorerItem<ExplorerNode[]>(TREE_KEY, initialTree);
+      setTree(loadedTree);
+      const loadedActiveId = await getExplorerItem<string | null>(ACTIVE_ID_KEY, null);
+      setActiveId(loadedActiveId);
+      const loadedOpenFileIds = await getExplorerItem<string[]>(OPEN_FILE_IDS_KEY, []);
+      setOpenFileIds(loadedOpenFileIds);
+      setLoading(false);
+    })();
+  }, []);
 
   const isMobileScreen = window.innerWidth <= 768;
   const [sidebarOpen, setSidebarOpen] = useState(isMobileScreen ? false : true);
   const [searchOpen, setSearchOpen] = useState(false);
-  // Persist tree to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(TREE_KEY, JSON.stringify(tree));
-  }, [tree]);
 
-  // Persist activeId to localStorage whenever it changes
+  // Persist tree to IndexedDB whenever it changes, but only after loading
   useEffect(() => {
-    if (activeId) {
-      localStorage.setItem(ACTIVE_ID_KEY, activeId);
-    } else {
-      localStorage.removeItem(ACTIVE_ID_KEY);
+    if (!loading) {
+      setExplorerItem(TREE_KEY, tree);
     }
-  }, [activeId]);
+  }, [tree, loading]);
 
-  // Persist openFileIds to localStorage whenever it changes
+  // Persist activeId to IndexedDB whenever it changes, but only after loading
   useEffect(() => {
-    localStorage.setItem(OPEN_FILE_IDS_KEY, JSON.stringify(openFileIds));
-  }, [openFileIds]);
+    if (!loading) {
+      if (activeId) {
+        setExplorerItem(ACTIVE_ID_KEY, activeId);
+      } else {
+        removeExplorerItem(ACTIVE_ID_KEY);
+      }
+    }
+  }, [activeId, loading]);
+
+  // Persist openFileIds to IndexedDB whenever it changes, but only after loading
+  useEffect(() => {
+    if (!loading) {
+      setExplorerItem(OPEN_FILE_IDS_KEY, openFileIds);
+    }
+  }, [openFileIds, loading]);
 
   // Helper to find and update a node recursively
   const updateNode = useCallback(
