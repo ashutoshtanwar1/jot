@@ -6,7 +6,10 @@ import { Explorer } from '../explorer/explorer';
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 800;
 
-export const SidebarLayout: React.FC<{ open: boolean }> = ({ open }) => (
+export const SidebarLayout: React.FC<{ open: boolean; isDataLoading: boolean }> = ({
+  open,
+  isDataLoading,
+}) => (
   <div
     className={`transition-all duration-300 h-full flex flex-shrink-0 bg-card border-r border-border ${
       open ? 'w-fit opacity-100' : 'w-0 opacity-0 pointer-events-none'
@@ -25,7 +28,7 @@ export const SidebarLayout: React.FC<{ open: boolean }> = ({ open }) => (
           <span className="w-[2px] bg-border cursor-col-resize block h-full transition-all duration-200 hover:w-1 hover:bg-muted-foreground" />
         }
       >
-        <Explorer />
+        <Explorer isSkeleton={isDataLoading} />
       </ResizableBox>
     )}
   </div>

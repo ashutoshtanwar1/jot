@@ -6,7 +6,7 @@ import { useExplorer } from '../explorer/explorer-context';
 import { findParentFolderId } from '../explorer/explorer-utils';
 import ExplorerNodeItem from '../explorer/ExplorerNodeItem';
 
-const ExplorerLayout: React.FC = () => {
+const ExplorerLayout: React.FC<{ isSkeleton?: boolean }> = ({ isSkeleton }) => {
   const { tree, addNode, activeId } = useExplorer();
 
   const handleAddNode = (type: 'folder' | 'note') => {
@@ -31,6 +31,7 @@ const ExplorerLayout: React.FC = () => {
               size="icon"
               className="text-muted-foreground"
               onClick={() => handleAddNode('folder')}
+              disabled={isSkeleton}
             >
               <FolderPlus className="w-5 h-5" />
             </Button>
@@ -41,6 +42,7 @@ const ExplorerLayout: React.FC = () => {
               size="icon"
               className="text-muted-foreground"
               onClick={() => handleAddNode('note')}
+              disabled={isSkeleton}
             >
               <FilePlus className="w-5 h-5" />
             </Button>
@@ -49,7 +51,7 @@ const ExplorerLayout: React.FC = () => {
       </div>
       <div className="p-2 sm:p-4">
         {tree.map(node => (
-          <ExplorerNodeItem key={node.id} node={node} level={0} />
+          <ExplorerNodeItem key={node.id} node={node} level={0} isSkeleton={isSkeleton} />
         ))}
       </div>
     </div>
