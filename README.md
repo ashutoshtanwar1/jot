@@ -13,9 +13,11 @@
                      .:=**###**+:..      :=**###**+-..     .-*******+-   +*##*=..
                        ..........         ...........      ...........   .......
 
-                                                                          
+
           .+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*.
           .+#############################################################################+.
+
+# Jot
 
 A minimal note-taking app built with React, TypeScript, and Tiptap.
 
@@ -52,26 +54,34 @@ Here's a quick look at Jot in both dark and light modes:
 
 ## Getting Started
 
-1. Clone the repository
+### Clone the repository
 
-   ```bash
-   git clone https://github.com/ashutoshtanwar1/jot.git
-   cd jot
-   ```
+```bash
+git clone https://github.com/ashutoshtanwar1/jot.git
+cd jot
+```
 
-2. Install dependencies
+### Install dependencies
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. Start the development server
+### Start the development server
 
-   ```bash
-   npm run dev
-   ```
+#### Electron
 
-4. Open your browser and navigate to `http://localhost:5173`
+```bash
+npm run dev:electron
+```
+
+#### Web
+
+```bash
+npm run dev:web
+```
+
+Open your browser and navigate to `http://localhost:5173`
 
 ## Project Structure
 
