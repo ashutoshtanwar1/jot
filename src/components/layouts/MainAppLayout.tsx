@@ -1,4 +1,6 @@
+import { Container } from '@/design-system';
 import React from 'react';
+import { Skeleton } from '../../design-system/components/ui/Skeleton';
 import type { ExplorerNode } from '../explorer/explorer-context';
 import { useExplorer } from '../explorer/explorer-context';
 import { EditorLayout } from './EditorLayout';
@@ -28,6 +30,7 @@ export const MainAppLayout: React.FC = () => {
     sidebarOpen,
     setSidebarOpen,
     setSearchOpen,
+    isDataLoading,
   } = useExplorer();
   const openFiles = openFileIds.map(id => findNodeById(tree, id)).filter(Boolean) as ExplorerNode[];
   const activeFile = activeId ? findNodeById(tree, activeId) : null;
@@ -42,15 +45,28 @@ export const MainAppLayout: React.FC = () => {
         setSearchOpen={setSearchOpen}
       />
       <main className="flex flex-1 min-h-0">
-        <SidebarLayout open={sidebarOpen} />
+        <SidebarLayout open={sidebarOpen} isDataLoading={isDataLoading} />
         <div className="flex-1 flex flex-col overflow-x-auto">
           <TabsLayout
             openFiles={openFiles}
             activeId={activeId}
             setActiveId={setActiveId}
             closeFile={closeFile}
+            isDataLoading={isDataLoading}
           />
-          <EditorLayout activeFile={activeFile} updateFileContent={updateFileContent} />
+          {isDataLoading ? (
+            <Container className="mt-8 p-2 h-full w-full flex-1 flex flex-col gap-4">
+              <Skeleton className="h-6 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-4 w-1/4" />
+            </Container>
+          ) : (
+            <EditorLayout activeFile={activeFile} updateFileContent={updateFileContent} />
+          )}
         </div>
       </main>
     </div>

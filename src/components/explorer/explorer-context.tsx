@@ -29,6 +29,7 @@ export type ExplorerContextType = {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   searchOpen: boolean;
   setSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isDataLoading: boolean;
 };
 
 const ExplorerContext = createContext<ExplorerContextType | undefined>(undefined);
@@ -230,6 +231,7 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSidebarOpen,
         searchOpen,
         setSearchOpen,
+        isDataLoading: loading,
       }}
     >
       {children}
