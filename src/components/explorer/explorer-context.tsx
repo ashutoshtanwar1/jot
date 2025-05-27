@@ -177,9 +177,17 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const updated = updateNode(prev, id, node => {
           node.name = name;
         });
-        const node = updated
-          .flatMap(n => (n.id === id ? [n] : n.isFolder ? n.items : []))
-          .find(n => n.id === id);
+        const findNodeRecursively = (nodes: ExplorerNode[]): ExplorerNode | undefined => {
+          for (const node of nodes) {
+            if (node.id === id) return node;
+            if (node.isFolder && node.items.length > 0) {
+              const found = findNodeRecursively(node.items);
+              if (found) return found;
+            }
+          }
+          return undefined;
+        };
+        const node = findNodeRecursively(updated);
         if (node) setExplorerNode(node);
         return updated;
       });

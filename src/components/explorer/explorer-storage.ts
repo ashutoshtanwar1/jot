@@ -35,28 +35,48 @@ export const explorerDB = new ExplorerDexieDB();
  * Returns a single ExplorerNode by id, or undefined if not found.
  */
 export async function getExplorerNode(id: string): Promise<ExplorerNode | undefined> {
-  return explorerDB.explorer_nodes.get(id);
+  try {
+    return await explorerDB.explorer_nodes.get(id);
+  } catch (error) {
+    console.error('Failed to get explorer node:', error);
+    return undefined;
+  }
 }
 
 /**
  * Inserts or updates an ExplorerNode in the database.
  */
 export async function setExplorerNode(node: ExplorerNode): Promise<void> {
-  await explorerDB.explorer_nodes.put(node);
+  try {
+    await explorerDB.explorer_nodes.put(node);
+  } catch (error) {
+    console.error('Failed to set explorer node:', error);
+    throw error; // Re-throw to allow callers to handle
+  }
 }
 
 /**
  * Removes an ExplorerNode by id from the database.
  */
 export async function removeExplorerNode(id: string): Promise<void> {
-  await explorerDB.explorer_nodes.delete(id);
+  try {
+    await explorerDB.explorer_nodes.delete(id);
+  } catch (error) {
+    console.error('Failed to remove explorer node:', error);
+    throw error; // Re-throw to allow callers to handle
+  }
 }
 
 /**
  * Returns all ExplorerNodes in the database as an array.
  */
 export async function getAllExplorerNodes(): Promise<ExplorerNode[]> {
-  return explorerDB.explorer_nodes.toArray();
+  try {
+    return await explorerDB.explorer_nodes.toArray();
+  } catch (error) {
+    console.error('Failed to get all explorer nodes:', error);
+    return [];
+  }
 }
 
 // State (openFileIds, activeId, etc)
@@ -64,20 +84,35 @@ export async function getAllExplorerNodes(): Promise<ExplorerNode[]> {
  * Gets a value from the explorer_state table by key, or returns fallback if not found.
  */
 export async function getExplorerState<T>(key: string, fallback: T): Promise<T> {
-  const entry = await explorerDB.explorer_state.get(key);
-  return entry ? (entry.value as T) : fallback;
+  try {
+    const entry = await explorerDB.explorer_state.get(key);
+    return entry ? (entry.value as T) : fallback;
+  } catch (error) {
+    console.error('Failed to get explorer state:', error);
+    return fallback;
+  }
 }
 
 /**
  * Sets a value in the explorer_state table by key.
  */
 export async function setExplorerState<T>(key: string, value: T): Promise<void> {
-  await explorerDB.explorer_state.put({ key, value });
+  try {
+    await explorerDB.explorer_state.put({ key, value });
+  } catch (error) {
+    console.error('Failed to set explorer state:', error);
+    throw error; // Re-throw to allow callers to handle
+  }
 }
 
 /**
  * Removes a value from the explorer_state table by key.
  */
 export async function removeExplorerState(key: string): Promise<void> {
-  await explorerDB.explorer_state.delete(key);
+  try {
+    await explorerDB.explorer_state.delete(key);
+  } catch (error) {
+    console.error('Failed to remove explorer state:', error);
+    throw error; // Re-throw to allow callers to handle
+  }
 }
