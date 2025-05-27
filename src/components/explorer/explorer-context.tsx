@@ -1,5 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { getExplorerItem, removeExplorerItem, setExplorerItem } from './explorer-storage';
+import {
+  getExplorerState,
+  removeExplorerNode,
+  removeExplorerState,
+  setExplorerNode,
+  setExplorerState,
+} from './explorer-storage';
 import { explorerTemplates } from './templates';
 
 export type ExplorerNode = {
@@ -55,14 +61,14 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [openFileIds, setOpenFileIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from IndexedDB on mount
+  // Load from Dexie/Electron on mount
   useEffect(() => {
     (async () => {
-      const loadedTree = await getExplorerItem<ExplorerNode[]>(TREE_KEY, initialTree);
+      const loadedTree = await getExplorerState<ExplorerNode[]>(TREE_KEY, initialTree);
       setTree(loadedTree);
-      const loadedActiveId = await getExplorerItem<string | null>(ACTIVE_ID_KEY, null);
+      const loadedActiveId = await getExplorerState<string | null>(ACTIVE_ID_KEY, null);
       setActiveId(loadedActiveId);
-      const loadedOpenFileIds = await getExplorerItem<string[]>(OPEN_FILE_IDS_KEY, []);
+      const loadedOpenFileIds = await getExplorerState<string[]>(OPEN_FILE_IDS_KEY, []);
       setOpenFileIds(loadedOpenFileIds);
       setLoading(false);
     })();
@@ -72,28 +78,28 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [sidebarOpen, setSidebarOpen] = useState(isMobileScreen ? false : true);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Persist tree to IndexedDB whenever it changes, but only after loading
+  // Persist tree to Dexie/Electron whenever it changes, but only after loading
   useEffect(() => {
     if (!loading) {
-      setExplorerItem(TREE_KEY, tree);
+      setExplorerState(TREE_KEY, tree);
     }
   }, [tree, loading]);
 
-  // Persist activeId to IndexedDB whenever it changes, but only after loading
+  // Persist activeId to Dexie/Electron whenever it changes, but only after loading
   useEffect(() => {
     if (!loading) {
       if (activeId) {
-        setExplorerItem(ACTIVE_ID_KEY, activeId);
+        setExplorerState(ACTIVE_ID_KEY, activeId);
       } else {
-        removeExplorerItem(ACTIVE_ID_KEY);
+        removeExplorerState(ACTIVE_ID_KEY);
       }
     }
   }, [activeId, loading]);
 
-  // Persist openFileIds to IndexedDB whenever it changes, but only after loading
+  // Persist openFileIds to Dexie/Electron whenever it changes, but only after loading
   useEffect(() => {
     if (!loading) {
-      setExplorerItem(OPEN_FILE_IDS_KEY, openFileIds);
+      setExplorerState(OPEN_FILE_IDS_KEY, openFileIds);
     }
   }, [openFileIds, loading]);
 
@@ -129,16 +135,22 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         lastOpenedDate: node.lastOpenedDate || undefined,
       };
       if (!parentId) {
-        setTree(prev => [...prev, nodeWithDates]);
+        setTree(prev => {
+          const newTree = [...prev, nodeWithDates];
+          setExplorerNode(nodeWithDates);
+          return newTree;
+        });
         return;
       }
-      setTree(prev =>
-        updateNode(prev, parentId, parent => {
+      setTree(prev => {
+        const updated = updateNode(prev, parentId, parent => {
           if (parent.isFolder) {
             parent.items = [...parent.items, nodeWithDates];
           }
-        }),
-      );
+        });
+        setExplorerNode(nodeWithDates);
+        return updated;
+      });
     },
     [updateNode],
   );
@@ -146,7 +158,10 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const removeNode = useCallback((id: string) => {
     const removeRec = (nodes: ExplorerNode[]): ExplorerNode[] => {
       return nodes.filter(node => {
-        if (node.id === id) return false;
+        if (node.id === id) {
+          removeExplorerNode(id);
+          return false;
+        }
         if (node.isFolder && node.items.length > 0) {
           node.items = removeRec(node.items);
         }
@@ -158,11 +173,16 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const renameNode = useCallback(
     (id: string, name: string) => {
-      setTree(prev =>
-        updateNode(prev, id, node => {
+      setTree(prev => {
+        const updated = updateNode(prev, id, node => {
           node.name = name;
-        }),
-      );
+        });
+        const node = updated
+          .flatMap(n => (n.id === id ? [n] : n.isFolder ? n.items : []))
+          .find(n => n.id === id);
+        if (node) setExplorerNode(node);
+        return updated;
+      });
     },
     [updateNode],
   );
@@ -175,13 +195,18 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (isMobileScreen) {
         setSidebarOpen(false);
       }
-      setTree(prev =>
-        updateNode(prev, id, node => {
+      setTree(prev => {
+        const updated = updateNode(prev, id, node => {
           if (!node.isFolder) {
             node.lastOpenedDate = now;
           }
-        }),
-      );
+        });
+        const node = updated
+          .flatMap(n => (n.id === id ? [n] : n.isFolder ? n.items : []))
+          .find(n => n.id === id);
+        if (node) setExplorerNode(node);
+        return updated;
+      });
     },
     [isMobileScreen, updateNode],
   );
@@ -201,14 +226,19 @@ export const ExplorerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateFileContent = useCallback(
     (id: string, content: string) => {
       const now = new Date().toISOString();
-      setTree(prev =>
-        updateNode(prev, id, node => {
+      setTree(prev => {
+        const updated = updateNode(prev, id, node => {
           if (!node.isFolder) {
             node.content = content;
             node.lastUpdatedDate = now;
           }
-        }),
-      );
+        });
+        const node = updated
+          .flatMap(n => (n.id === id ? [n] : n.isFolder ? n.items : []))
+          .find(n => n.id === id);
+        if (node) setExplorerNode(node);
+        return updated;
+      });
     },
     [updateNode],
   );
