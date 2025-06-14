@@ -1,118 +1,79 @@
-import type { Table } from 'dexie';
-import Dexie from 'dexie';
-import type { ExplorerNode } from './explorer-context';
+import type { ExplorerNode } from '../../../explorer-sqlite-storage';
 
-/**
- * ExplorerDexieDB is the modular Dexie.js database for explorer data.
- * It contains tables for explorer nodes and key-value state.
- */
-export class ExplorerDexieDB extends Dexie {
-  /**
-   * Table for storing ExplorerNode objects, indexed by id.
-   */
-  explorer_nodes!: Table<ExplorerNode, string>; // id is string
-  /**
-   * Table for storing key-value state (openFileIds, activeId, etc).
-   */
-  explorer_state!: Table<{ key: string; value: unknown }, string>; // key-value pairs for state
-
-  constructor() {
-    super('ExplorerDB');
-    this.version(1).stores({
-      explorer_nodes: 'id',
-      explorer_state: 'key',
-    });
+// Use Electron's API exposed via preload
+function getExplorerApi(): NonNullable<Window['api']>['explorer'] {
+  if (!window.api?.explorer) {
+    throw new Error('Explorer API is not available. Are you running in Electron?');
   }
+  return window.api.explorer;
 }
 
-/**
- * The singleton Dexie database instance for explorer data.
- */
-export const explorerDB = new ExplorerDexieDB();
+function isExplorerNode(obj: unknown): obj is ExplorerNode {
+  if (!obj || typeof obj !== 'object') return false;
+  const node = obj as ExplorerNode;
+  return (
+    typeof node.id === 'string' &&
+    typeof node.name === 'string' &&
+    typeof node.isFolder === 'boolean' &&
+    Array.isArray(node.items)
+  );
+}
 
-// ExplorerNode CRUD
-/**
- * Returns a single ExplorerNode by id, or undefined if not found.
- */
 export async function getExplorerNode(id: string): Promise<ExplorerNode | undefined> {
-  try {
-    return await explorerDB.explorer_nodes.get(id);
-  } catch (error) {
-    console.error('Failed to get explorer node:', error);
-    return undefined;
-  }
+  const explorerApi = getExplorerApi();
+  const result = await explorerApi.getNode(id);
+  if (isExplorerNode(result)) return result;
+  return undefined;
 }
 
-/**
- * Inserts or updates an ExplorerNode in the database.
- */
-export async function setExplorerNode(node: ExplorerNode): Promise<void> {
-  try {
-    await explorerDB.explorer_nodes.put(node);
-  } catch (error) {
-    console.error('Failed to set explorer node:', error);
-    throw error; // Re-throw to allow callers to handle
-  }
-}
-
-/**
- * Removes an ExplorerNode by id from the database.
- */
-export async function removeExplorerNode(id: string): Promise<void> {
-  try {
-    await explorerDB.explorer_nodes.delete(id);
-  } catch (error) {
-    console.error('Failed to remove explorer node:', error);
-    throw error; // Re-throw to allow callers to handle
-  }
-}
-
-/**
- * Returns all ExplorerNodes in the database as an array.
- */
 export async function getAllExplorerNodes(): Promise<ExplorerNode[]> {
-  try {
-    return await explorerDB.explorer_nodes.toArray();
-  } catch (error) {
-    console.error('Failed to get all explorer nodes:', error);
-    return [];
+  const explorerApi = getExplorerApi();
+  const result = await explorerApi.getAllNodes();
+  if (Array.isArray(result)) {
+    return result.filter(isExplorerNode);
   }
+  return [];
 }
 
-// State (openFileIds, activeId, etc)
-/**
- * Gets a value from the explorer_state table by key, or returns fallback if not found.
- */
+export async function setExplorerNode(node: ExplorerNode): Promise<void> {
+  const explorerApi = getExplorerApi();
+  await explorerApi.setNode(node as unknown as Record<string, unknown>);
+}
+
+export async function removeExplorerNode(id: string): Promise<void> {
+  const explorerApi = getExplorerApi();
+  await explorerApi.removeNode(id);
+}
+
 export async function getExplorerState<T>(key: string, fallback: T): Promise<T> {
-  try {
-    const entry = await explorerDB.explorer_state.get(key);
-    return entry ? (entry.value as T) : fallback;
-  } catch (error) {
-    console.error('Failed to get explorer state:', error);
-    return fallback;
-  }
+  const explorerApi = getExplorerApi();
+  const result = await explorerApi.getState(key, fallback);
+  // We cannot type check T, so return as is, fallback if undefined
+  return result === undefined ? fallback : (result as T);
 }
 
-/**
- * Sets a value in the explorer_state table by key.
- */
 export async function setExplorerState<T>(key: string, value: T): Promise<void> {
-  try {
-    await explorerDB.explorer_state.put({ key, value });
-  } catch (error) {
-    console.error('Failed to set explorer state:', error);
-    throw error; // Re-throw to allow callers to handle
-  }
+  const explorerApi = getExplorerApi();
+  await explorerApi.setState(key, value);
 }
 
-/**
- * Removes a value from the explorer_state table by key.
- */
 export async function removeExplorerState(key: string): Promise<void> {
-  try {
-    await explorerDB.explorer_state.delete(key);
-  } catch (error) {
-    console.error('Failed to remove explorer state:', error);
-    throw error; // Re-throw to allow callers to handle
-  }
+  const explorerApi = getExplorerApi();
+  await explorerApi.removeState(key);
+}
+
+export async function exportExplorerData(): Promise<object> {
+  const explorerApi = getExplorerApi();
+  return await explorerApi.exportAll();
+}
+
+export async function importExplorerData(data: object): Promise<void> {
+  const explorerApi = getExplorerApi();
+  await explorerApi.importAll(data);
+}
+
+// Reactivity: Listen for changes from main process
+export function subscribeToExplorerChanges(callback: (payload: unknown) => void): () => void {
+  const explorerApi = getExplorerApi();
+  return explorerApi.onDataChanged(callback);
 }

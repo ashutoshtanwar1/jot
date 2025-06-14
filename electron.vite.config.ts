@@ -6,12 +6,13 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       outDir: 'out/main',
-      lib: {
-        entry: 'electron-main.ts',
-      },
       rollupOptions: {
+        input: {
+          main: 'electron-main.ts',
+          mcp: 'src/mcp-server.ts',
+        },
         output: {
-          entryFileNames: 'index.js',
+          entryFileNames: '[name].js',
         },
       },
     },

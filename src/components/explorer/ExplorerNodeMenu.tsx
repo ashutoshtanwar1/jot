@@ -5,9 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/design-system';
+import type { ExplorerNode } from 'explorer-sqlite-storage';
 import { MoreVertical } from 'lucide-react';
 import React from 'react';
-import type { ExplorerNode } from './explorer-context';
 
 interface ExplorerNodeMenuProps {
   node: ExplorerNode;

@@ -1,4 +1,4 @@
-import type { ExplorerNode } from './explorer-context';
+import type { ExplorerNode } from 'explorer-sqlite-storage';
 
 export const explorerTemplates: ExplorerNode[] = [
   {
